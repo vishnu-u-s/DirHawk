@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DirHawk — Open Directory Scanner</title>
+  <meta name="description" content="DirHawk: VAPT tool to find publicly accessible directories on web servers." />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="logo">
+    <span class="logo-icon">🦅</span>
+    <span class="logo-text">Dir<span>Hawk</span></span>
+    <span class="logo-badge">v1.0</span>
+  </div>
+  <div class="header-right">
+    <div class="status-dot idle" id="statusDot"></div>
+    <span class="status-text" id="statusText">IDLE</span>
+    <button class="btn btn-ghost btn-warn" id="stopAiBtn" style="display:none" onclick="stopAI()">⏹ Stop AI</button>
+    <button class="btn btn-danger" id="stopBtn" disabled>■ Stop</button>
+  </div>
+</header>
+
+<!-- ── App Body ── -->
+<div class="app-body">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <!-- Targets -->
+    <div class="sidebar-section">
+      <div class="section-label">Target(s)</div>
+      <div class="form-row">
+        <label>Single URL or paste multiple (one per line)</label>
+        <textarea id="targetsInput" placeholder="http://example.com&#10;http://target2.com&#10;192.168.1.1"></textarea>
+        <div class="form-hint">Or upload a domains.txt below</div>
+      </div>
+      <div class="form-row">
+        <input type="file" id="targetsFile" accept=".txt" style="display:none" />
+        <button class="btn btn-ghost" onclick="document.getElementById('targetsFile').click()">📂 Load domains.txt</button>
+      </div>
+    </div>
+
+    <!-- Network -->
+    <div class="sidebar-section">
+      <div class="section-label">Network</div>
+      <div class="form-row">
+        <label>Proxy Type</label>
+        <div class="mode-toggle" style="font-size:11px">
+          <button class="mode-btn active" id="proxyTypeNone"   onclick="setProxyType('none')"  >None</button>
+          <button class="mode-btn"        id="proxyTypeSocks5" onclick="setProxyType('socks5')">SOCKS5</button>
+          <button class="mode-btn"        id="proxyTypeHttp"   onclick="setProxyType('http')"  >HTTP</button>
+        </div>
+      </div>
+      <!-- Proxy fields (hidden when None selected) -->
+      <div id="proxyFields" style="display:none">
+        <div class="proxy-fields-grid">
+          <div class="form-row">
+            <label>Hostname</label>
+            <input type="text" id="proxyHost" placeholder="127.0.0.1" />
+          </div>
+          <div class="form-row">
+            <label>Port</label>
+            <input type="text" id="proxyPort" placeholder="9050" />
+          </div>
+          <div class="form-row">
+            <label>Username <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+            <input type="text" id="proxyUser" placeholder="" autocomplete="off" />
+          </div>
+          <div class="form-row">
+            <label>Password <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+            <input type="password" id="proxyPass" placeholder="" autocomplete="off" />
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <div id="proxyStatus" class="proxy-status off" style="flex:1">● Direct</div>
+          <button class="btn btn-ghost" id="testProxyBtn">⚡ Test</button>
+        </div>
+      </div>
+      <div class="form-row" style="display:flex; gap:10px; margin-top:8px">
+        <div style="flex:1">
+          <label>Timeout (s)</label>
+          <input type="text" id="timeoutInput" value="10" />
+        </div>
+        <div style="flex:1">
+          <label>Threads</label>
+          <input type="text" id="workersInput" value="10" />
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Mode -->
+    <div class="sidebar-section">
+      <div class="section-label">Scan Mode</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeNormal" onclick="setMode('normal')">⚡ Normal</button>
+        <button class="mode-btn" id="modeAI" onclick="setMode('ai')">🤖 AI</button>
+      </div>
+
+      <!-- AI Panel -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="form-row">
+          <label>API Base URL</label>
+          <input type="text" id="aiUrl" placeholder="http://10.31.5.112:4000" />
+        </div>
+        <div class="form-row">
+          <label>API Key</label>
+          <input type="password" id="aiKey" placeholder="sk-xxxx" />
+        </div>
+        <div class="form-row">
+          <label>Model</label>
+          <div class="input-with-btn">
+            <select id="aiModel">
+              <option value="">— select model —</option>
+            </select>
+            <button class="btn btn-ghost" id="listModelsBtn" onclick="loadModels()">↻ Load</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Analyze</label>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="aiScopeAll" onclick="setAiScope('all')">All Open Dirs</button>
+            <button class="mode-btn" id="aiScopeSensitive" onclick="setAiScope('sensitive')">Sensitive Only</button>
+          </div>
+          <div class="form-hint">What to send to AI after scan completes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wordlist -->
+    <div class="sidebar-section">
+      <div class="section-label">Wordlist</div>
+      <div class="form-row">
+        <label>Custom wordlist (optional)</label>
+        <div class="input-with-btn">
+          <input type="text" id="wordlistPath" placeholder="default (built-in)" />
+          <input type="file" id="wordlistFile" accept=".txt" style="display:none" />
+          <button class="btn btn-ghost" onclick="document.getElementById('wordlistFile').click()">📂</button>
+        </div>
+        <div class="form-hint">Leave blank to use the built-in ~150-entry list</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sidebar-section">
+      <button class="btn btn-primary" id="startBtn" onclick="startScan()">
+        🦅 Start Scan
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ── Main Content ── -->
+  <div class="main-content">
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Checked</div>
+        <div class="stat-value checked" id="statChecked">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Open Dirs</div>
+        <div class="stat-value open" id="statOpen">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sensitive</div>
+        <div class="stat-value sensitive" id="statSensitive">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">403 Blocked</div>
+        <div class="stat-value" id="stat403" style="color:var(--yellow)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Targets</div>
+        <div class="stat-value" id="statTargets">0</div>
+      </div>
+    </div>
+
+    <!-- Terminal + Results -->
+    <div class="content-area">
+
+      <!-- Terminal -->
+      <div class="terminal-panel">
+        <div class="terminal-header">
+          <span class="terminal-title">📡 Live Output</span>
+          <div class="terminal-actions">
+            <button class="btn btn-ghost btn-clear" onclick="clearTerminal()" title="Clear terminal output and reset stats">🗑 Clear</button>
+            <button class="btn btn-ghost" onclick="downloadMarkdown()" id="downloadMdBtn" title="Download all found directories as Markdown report">⬇ MD Report</button>
+            <button class="btn btn-ghost" onclick="exportTerminal()">Export Log</button>
+          </div>
+        </div>
+        <div class="terminal-body" id="terminal">
+          <div class="t-line t-header">  🦅 DirHawk — Open Directory Scanner</div>
+          <div class="t-line t-info">  Configure targets and click Start Scan.</div>
+          <div class="t-line t-info">  Found sensitive directories will be highlighted in red.</div>
+          <div class="t-line t-muted">  ────────────────────────────────────────</div>
+        </div>
+      </div>
+
+      <!-- Results Panel -->
+      <div class="results-panel">
+        <div class="results-header">
+          <span class="results-title">📁 Scan History</span>
+          <button class="btn btn-ghost" onclick="loadHistory()">↻</button>
+        </div>
+        <div class="results-list" id="resultsList">
+          <div class="empty-results">No scans yet.<br/>Results auto-save here.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Dir Detail Modal ── -->
+<div class="dir-tree-modal" id="modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Directory Contents</span>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
