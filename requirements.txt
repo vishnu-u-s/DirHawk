@@ -1,0 +1,11 @@
+requests[socks]
+flask
+flask-cors
+flask-socketio
+anthropic
+beautifulsoup4
+colorama
+tabulate
+tqdm
+python-dotenv
+eventlet
