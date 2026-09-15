@@ -1,4 +1,4 @@
-﻿# 🦅 DirHawk — Open Directory Scanner
+# 🦅 DirHawk — Open Directory Scanner
 
 > AI-powered open directory scanner for authorized VAPT engagements and bug bounty recon.
 > It doesn't just find exposed directories — it tells you **which ones actually matter**.
@@ -145,7 +145,7 @@ DirHawk/
 
 ## 🔁 Part of Probr
 
-DirHawk started as a standalone tool — then was integrated into [Probr](https://github.com/VishnuUS/probr) as **Layer 10** of the full recon pipeline. Build once, integrate everywhere.
+DirHawk started as a standalone tool — then was integrated into [Probr](https://github.com/vishnu-u-s/probr) as **Layer 10** of the full recon pipeline. Build once, integrate everywhere.
 
 ---
 
@@ -163,7 +163,7 @@ This tool is designed for **authorized** VAPT engagements and bug bounty program
 **Vishnu US** — VAPT Engineer
 
 - 🔗 LinkedIn: [linkedin.com/in/vishnu-us-5314b6205](https://linkedin.com/in/vishnu-us-5314b6205)
-- 🐙 GitHub: [github.com/VishnuUS](https://github.com/VishnuUS)
+- 🐙 GitHub: [github.com/vishnu-u-s](https://github.com/vishnu-u-s)
 - 📧 Email: vishnuusbug@gmail.com
 
 ---
