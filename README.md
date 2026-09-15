@@ -170,5 +170,5 @@ This tool is designed for **authorized** VAPT engagements and bug bounty program
 
 ## 🔗 Related Projects
 
-- [Probr]([https://github.com/VishnuUS/probr](https://github.com/vishnu-u-s/probr)) — Vulnerability Recon & Finder Engine (DirHawk is integrated as Layer 10)
-- [AI Bug Bounty Tool]([https://github.com/VishnuUS/ai-bug-bounty-tool](https://github.com/vishnu-u-s/ai-bug-bounty-tool)) — MCP server with 104 security testing tools
+- [Probr](https://github.com/vishnu-u-s/probr) — Vulnerability Recon & Finder Engine (DirHawk is integrated as Layer 10)
+- [AI Bug Bounty Tool](https://github.com/vishnu-u-s/ai-bug-bounty-tool) — MCP server with 104 security testing tools
