@@ -1,0 +1,35 @@
+﻿# Results and scan outputs (may contain target data)
+results/
+
+# Personal notes and internal config
+NOTE.txt
+bs4_install.txt
+pip_install.txt
+pip_req.txt
+test_output.txt
+test_results.txt
+setup_python.ps1
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# IDE / editor
+.vscode/
+.kiro/
+.idea/
+*.swp
+*.swo
+
+# Environment and secrets
+.env
+*.env
+config.local.*
+*_local.py
+
+# OS files
+.DS_Store
+Thumbs.db
